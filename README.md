@@ -2,7 +2,8 @@
 ## Module to retrieve prayer times from official JAKI Malaysia homepage (e-solat)
 
 > إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا
-Indeed, prayer has been decreed upon the believers a decree of specified times.
+
+> Indeed, prayer has been decreed upon the believers a decree of specified times.
 
 This is a module to retrieve prayer times from official JAKIM website (e-solat). It will output data as a JSON object. It will also output a list of prayer times in a human-readable format.
 
@@ -29,12 +30,18 @@ There are 3 functions that can be used to retrieve prayer times:
 The zones are:
 
 ## 1. Kedah
-KDH01 = KOTA SETAR, POKOK SENA DAN KUBANG PASU 
+KDH01 = KOTA SETAR, POKOK SENA DAN KUBANG PASU
+
 KDH02 = KUALA MUDA, PENDANG DAN YAN
+
 KDH03 = PADANG TERAP DAN SIK
+
 KDH04 = BALING
+
 KDH05 = KULIM DAN BANDAR BAHARU
+
 KDH06 = LANGKAWI
+
 KDH07 = GUNUNG JERAI
 
 ## 2. Melaka
