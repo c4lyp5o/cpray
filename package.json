@@ -1,0 +1,22 @@
+{
+  "name": "cpray",
+  "version": "1.1.7",
+  "description": "Module to retrieve prayer times from official JAKIM homepage (e-solat)",
+  "main": "cpray.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "prayer",
+    "times",
+    "salah",
+    "sholat",
+    "salah",
+    "malaysia"
+  ],
+  "author": "c4lyp5o",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.26.1"
+  }
+}
