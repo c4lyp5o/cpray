@@ -6,13 +6,43 @@
   "scripts": {
     "test": "npx jest"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/c4lyp5o/cpray.git"
+  },
+  "bugs": {
+    "url": "https://github.com/c4lyp5o/cpray/issues"
+  },
+  "homepage": "https://github.com/c4lyp5o/cpray#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "keywords": [
     "prayer",
     "times",
     "salah",
     "sholat",
+    "solat",
     "salah",
-    "malaysia"
+    "malaysia",
+    "islam",
+    "muslim",
+    "prayer times",
+    "malaysia prayer times",
+    "islamic prayer times",
+    "muslim prayer times",
+    "jakim",
+    "e-solat",
+    "waktusolat",
+    "api",
+    "json",
+    "async",
+    "await",
+    "promise",
+    "then",
+    "catch",
+    "fallback",
+    "reliability"
   ],
   "author": "c4lyp5o",
   "license": "MIT",
