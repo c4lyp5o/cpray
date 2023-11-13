@@ -1,33 +1,32 @@
 # CPRAY
 
-# Module to retrieve prayer times from official JAKI Malaysia homepage (e-solat)
+# Module to retrieve prayer times from the official JAKI Malaysia website
 
-> إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا
+> إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا - سورة النساء 4:103
 
-> Indeed, prayer has been decreed upon the believers a decree of specified times.
+> Indeed, prayer has been decreed upon the believers a decree of specified times - Surah An-Nisa 4:103
 
-This is a module to retrieve prayer times from official JAKIM website (e-solat). It will output data as a JSON object. It will also output a list of prayer times in a human-readable format.
-
-## **Usage**
-
-> npm install cpray
-
-In your code, use the module like this:
-
-> const Cpray = require('cpray');
-
-and create an instance of the class like this:
-
-> const cpray = new CPray();
+This module retrieves prayer times from the official JAKIM website (e-solat) and returns the data as a JSON object. It also provides a human-readable format for the prayer times. Starting from version 1.2.0, a fallback URL (https://api.waktusolat.me) has been added to ensure reliability even if the main URL is down.
 
 ## **Functions**
 
 There are 4 functions that can be used to retrieve prayer times:
 
-> getTimesToday(zone) # Returns prayer times for today
-> getTimesbyWeek(zone) # Returns prayer times for the week
-> getTimesbyMonth(zone) # Returns prayer times for the month
-> getTimesbyYear(zone) # Returns prayer times for the year
+```javascript
+getTimesToday(zone); // Returns prayer times for today
+```
+
+```javascript
+getTimesbyWeek(zone); // Returns prayer times for the week
+```
+
+```javascript
+getTimesbyMonth(zone); // Returns prayer times for the month
+```
+
+```javascript
+getTimesbyYear(zone); // Returns prayer times for the year
+```
 
 ## **Zones**
 
@@ -135,8 +134,107 @@ The zones are:
 
 ## **Usage**
 
-> const Cpray = require('cpray');
+Install the module with npm:
 
-> const cpray = new Cpray();
+```bash
+npm install cpray
+```
 
-> cpray.getTimesbyWeek(KDH01); # Returns an array of prayer times for the week of KDH01 in JSON format
+Require the `Cpray` class and create a new instance:
+
+```javascript
+const Cpray = require('cpray');
+const cpray = new Cpray();
+```
+
+You can then use the instance to get prayer times. Here's an example of getting the prayer times for a week for the 'KDH01' zone using async/await:
+
+```javascript
+async function getPrayerTimes() {
+  try {
+    const times = await cpray.getTimesbyWeek('KDH01');
+    console.log(times);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+getPrayerTimes();
+```
+
+And here's the same example using .then/.catch:
+
+```javascript
+cpray
+  .getTimesbyWeek('KDH01')
+  .then((times) => {
+    console.log(times);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+```
+
+Please note, the zone is not case sensitive. You can use either 'KDH01' or 'kdh01' or 'Kdh01' or even 'kDh01' or 'kdH01' (if you must).
+
+## Errors
+
+The module will throw an error in the following scenarios:
+
+- **The zone is not specified or invalid**: Each method of the `Cpray` class requires a `zone` parameter, which should be a string representing a valid zone. The valid zones are hardcoded in the module. If the `zone` parameter is not provided, or if it's not included in the list of valid zones, the method will throw an error with the message 'Invalid zone: {zone}'.
+
+- **Both the main and fallback URLs are down**: The `Cpray` class uses two URLs to fetch prayer times: a main URL and a fallback URL. If the main URL fails (for example, if the server is down or the request times out), the class will automatically try the fallback URL. If both URLs fail, the method will throw an error with the message 'Both main and fallback URLs failed'. This ensures that the class can still return prayer times even if one of the URLs is down, but it also means that it's dependent on at least one of the URLs being up.
+
+## Promises and Async/Await
+
+The methods of the `Cpray` class return Promises, which are objects representing the eventual completion or failure of an asynchronous operation.
+
+### Promises
+
+You can use the `.then` method to handle the result of a Promise:
+
+```javascript
+cpray
+  .getTimesToday('KDH01')
+  .then((timesToday) => {
+    console.log(timesToday);
+  })
+  .catch((error) => {
+    console.error('Failed to fetch prayer times:', error.message);
+  });
+```
+
+### Async/Await
+
+You can also use the async/await syntax to handle Promises in a way that resembles synchronous code:
+
+```javascript
+async function fetchPrayerTimes() {
+  try {
+    const timesToday = await cpray.getTimesToday('KDH01');
+    console.log(timesToday);
+  } catch (error) {
+    console.error('Failed to fetch prayer times:', error.message);
+  }
+}
+
+fetchPrayerTimes();
+```
+
+## Testing
+
+The `Cpray` class comes with a suite of tests to ensure its methods work as expected. These tests cover various scenarios, including successful requests, failed requests, the use of both the main and fallback URLs and the use of valid and invalid zones.
+
+To run the tests, you need to have [Jest](https://jestjs.io/) installed. If you don't have Jest installed, you can install it with npm:
+
+```bash
+npm install --save-dev jest
+```
+
+Once Jest is installed, you can run the tests with the following command:
+
+```bash
+npm test
+```
+
+The tests ensure that the `Cpray` class handles Promises and errors correctly using async/await syntax, as well as `.then` and `.catch`. They also use `try-catch` blocks for error handling. Special attention is given to scenarios where an invalid zone is provided. The `Cpray` class methods require a `zone` parameter, representing a valid zone. These zones are hardcoded in the module. If an invalid `zone` is provided, the method will throw an error with the message 'Invalid zone: {zone}'.
