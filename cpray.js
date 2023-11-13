@@ -1,81 +1,112 @@
 const axios = require('axios').default;
 
+const getTimes = Symbol('getTimes');
+const validZones = [
+  'KDH01',
+  'KDH02',
+  'KDH03',
+  'KDH04',
+  'KDH05',
+  'KDH06',
+  'KDH07',
+  'MLK01',
+  'NGS01',
+  'NGS02',
+  'PHG01',
+  'PHG02',
+  'PHG03',
+  'PHG04',
+  'PHG05',
+  'PHG06',
+  'PRK01',
+  'PRK02',
+  'PRK03',
+  'PRK04',
+  'PRK05',
+  'PRK06',
+  'PRK07',
+  'PLS01',
+  'PNG01',
+  'SGR01',
+  'SGR02',
+  'SGR03',
+  'TRG01',
+  'TRG02',
+  'TRG03',
+  'TRG04',
+  'JHR01',
+  'JHR02',
+  'JHR03',
+  'JHR04',
+  'KTN01',
+  'KTN03',
+  'SBH01',
+  'SBH02',
+  'SBH03',
+  'SBH04',
+  'SBH05',
+  'SBH06',
+  'SBH07',
+  'SBH08',
+  'SBH09',
+  'SWK01',
+  'SWK02',
+  'SWK03',
+  'SWK04',
+  'SWK05',
+  'SWK06',
+  'SWK07',
+  'SWK08',
+  'SWK09',
+  'WLY01',
+  'WLY02',
+];
+
 class Cpray {
   constructor() {
     this.baseUrl = 'https://www.e-solat.gov.my/index.php?r=esolatApi';
     this.fallbackUrl = 'https://api.waktusolat.me/waktusolat';
   }
 
-  async getTimesToday(zone) {
+  async [getTimes](period, zone) {
+    zone = zone.toUpperCase();
+
+    if (!validZones.includes(zone)) {
+      throw new Error(`Invalid zone: ${zone}`);
+    }
+
     const url = `${this.baseUrl}/takwimsolat`;
-    const params = {
-      period: 'today',
-      zone: zone,
-    };
+    const params = { period, zone };
 
     try {
-      const response = await axios.get(url, { params });
-      return response.data;
+      const { data } = await axios.get(url, { params });
+      return data;
     } catch (error) {
-      const fallbackResponse = await axios.get(
-        `${this.fallbackUrl}/today/${zone}`
-      );
-      return fallbackResponse.data;
+      try {
+        const { data } = await axios.get(
+          `${this.fallbackUrl}/${period}/${zone}`
+        );
+        return data;
+      } catch (fallbackError) {
+        throw new Error('Server error. Sila cuba lagi.');
+      }
     }
   }
 
-  async getTimesbyWeek(zone) {
-    const url = `${this.baseUrl}/takwimsolat`;
-    const params = {
-      period: 'week',
-      zone: zone,
-    };
-
-    try {
-      const response = await axios.get(url, { params });
-      return response.data;
-    } catch (error) {
-      const fallbackResponse = await axios.get(
-        `${this.fallbackUrl}/week/${zone}`
-      );
-      return fallbackResponse.data;
-    }
+  getTimesToday(zone) {
+    return this[getTimes]('today', zone);
   }
 
-  async getTimesbyMonth(zone) {
-    const url = `${this.baseUrl}/takwimsolat`;
-    const params = {
-      period: 'month',
-      zone: zone,
-    };
-
-    try {
-      const response = await axios.get(url, { params });
-      return response.data;
-    } catch (error) {
-      const fallbackResponse = await axios.get(
-        `${this.fallbackUrl}/month/${zone}`
-      );
-      return fallbackResponse.data;
-    }
+  getTimesbyWeek(zone) {
+    return this[getTimes]('week', zone);
   }
 
-  async getTimesbyYear(zone) {
-    const url = `${this.baseUrl}/takwimsolat`;
-    const params = {
-      period: 'year',
-      zone: zone,
-    };
+  getTimesbyMonth(zone) {
+    return this[getTimes]('month', zone);
+  }
 
-    try {
-      const response = await axios.get(url, { params });
-      return response.data;
-    } catch (error) {
-      const fallbackResponse = await axios.get(
-        `${this.fallbackUrl}/year/${zone}`
-      );
-      return fallbackResponse.data;
-    }
+  getTimesbyYear(zone) {
+    return this[getTimes]('year', zone);
   }
 }
 
