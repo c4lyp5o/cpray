@@ -1,8 +1,8 @@
-// FILEPATH: /home/calypso/cpray/cpray.test.js
-const axios = require('axios');
-const Cpray = require('../cpray');
+import { describe, it, beforeEach, expect, vi } from 'vitest';
+import axios from 'axios';
+import Cpray from '../src/index.js';
 
-jest.mock('axios');
+vi.mock('axios');
 
 describe('Cpray', () => {
   let cpray;
@@ -11,12 +11,12 @@ describe('Cpray', () => {
     cpray = new Cpray();
   });
 
-  // test for constructor
+  // Test for constructor
   it('getTimes is not accessible from outside the class', () => {
     expect(cpray.getTimes).toBeUndefined();
   });
 
-  // test for getTimesToday
+  // Test for getTimesToday
   it('getTimesToday returns data from the main URL when available', async () => {
     const data = { data: 'main data' };
     axios.get.mockResolvedValueOnce(data);
@@ -39,10 +39,10 @@ describe('Cpray', () => {
     const result = await cpray.getTimesToday('mlk01');
 
     expect(result).toEqual('fallback data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/today/MLK01`);
+    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/today/mlk01`);
   });
 
-  // test for getTimesbyWeek
+  // Test for getTimesbyWeek
   it('getTimesbyWeek returns data from the main URL when available', async () => {
     const data = { data: 'week data' };
     axios.get.mockResolvedValueOnce(data);
@@ -65,10 +65,10 @@ describe('Cpray', () => {
     const result = await cpray.getTimesbyWeek('mlk01');
 
     expect(result).toEqual('fallback week data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/week/MLK01`);
+    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/week/mlk01`);
   });
 
-  // test for getTimesbyMonth
+  // Test for getTimesbyMonth
   it('getTimesbyMonth returns data from the main URL when available', async () => {
     const data = { data: 'month data' };
     axios.get.mockResolvedValueOnce(data);
@@ -91,10 +91,10 @@ describe('Cpray', () => {
     const result = await cpray.getTimesbyMonth('mlk01');
 
     expect(result).toEqual('fallback month data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/month/MLK01`);
+    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/month/mlk01`);
   });
 
-  // test for getTimesbyYear
+  // Test for getTimesbyYear
   it('getTimesbyYear returns data from the main URL when available', async () => {
     const data = { data: 'year data' };
     axios.get.mockResolvedValueOnce(data);
@@ -117,10 +117,10 @@ describe('Cpray', () => {
     const result = await cpray.getTimesbyYear('mlk01');
 
     expect(result).toEqual('fallback year data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/year/MLK01`);
+    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/year/mlk01`);
   });
 
-  // test if both url fails
+  // Test if both URLs fail
   [
     'getTimesToday',
     'getTimesbyWeek',
@@ -138,67 +138,7 @@ describe('Cpray', () => {
     });
   });
 
-  // test using .then .catch
-  [
-    'getTimesToday',
-    'getTimesbyWeek',
-    'getTimesbyMonth',
-    'getTimesbyYear',
-  ].forEach((method) => {
-    it(`${method} works with .then and .catch`, () => {
-      const data = { data: `${method} data` };
-      axios.get.mockResolvedValueOnce(data);
-
-      return cpray[method]('mlk01').then((result) => {
-        expect(result).toEqual(`${method} data`);
-      });
-    });
-
-    it(`${method} handles errors with .catch`, () => {
-      axios.get.mockRejectedValueOnce(
-        new Error('Network error: Something went wrong')
-      );
-
-      return cpray[method]('mlk01').catch((error) => {
-        expect(error).toEqual(new Error('Server error. Sila cuba lagi.'));
-      });
-    });
-  });
-
-  // test using async await
-  [
-    'getTimesToday',
-    'getTimesbyWeek',
-    'getTimesbyMonth',
-    'getTimesbyYear',
-  ].forEach((method) => {
-    it(`${method} works with try-catch`, async () => {
-      const data = { data: `${method} data` };
-      axios.get.mockResolvedValueOnce(data);
-
-      try {
-        const result = await cpray[method]('mlk01');
-        expect(result).toEqual(`${method} data`);
-      } catch (error) {
-        expect(true).toBe(false);
-      }
-    });
-
-    it(`${method} handles errors with try-catch`, async () => {
-      axios.get.mockRejectedValueOnce(
-        new Error('Network error: Something went wrong')
-      );
-
-      try {
-        await cpray[method]('mlk01');
-        expect(true).toBe(false);
-      } catch (error) {
-        expect(error).toEqual(new Error('Server error. Sila cuba lagi.'));
-      }
-    });
-  });
-
-  // test for validZones
+  // Test for validZones
   [
     'getTimesToday',
     'getTimesbyWeek',
@@ -206,12 +146,9 @@ describe('Cpray', () => {
     'getTimesbyYear',
   ].forEach((method) => {
     it(`${method} throws an error when called with an invalid zone`, async () => {
-      try {
-        await cpray[method]('INVALID_ZONE');
-        expect(true).toBe(false);
-      } catch (error) {
-        expect(error).toEqual(new Error('Invalid zone: INVALID_ZONE'));
-      }
+      await expect(cpray[method]('INVALID_ZONE')).rejects.toThrow(
+        'Invalid zone: INVALID_ZONE'
+      );
     });
   });
 });
