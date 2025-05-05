@@ -1,0 +1,27 @@
+# Ignore source and build scripts
+src/
+build.js
+*.js
+*.ts
+*.map
+
+# Ignore tests and examples
+test/
+tests/
+__tests__/
+*.spec.*
+*.test.*
+examples/
+coverage/
+
+# Ignore config and misc files
+.eslintrc*
+.prettierrc*
+.vitest.*
+tsconfig.json
+jest.config.*
+.env*
+node_modules/
+
+# Exclude the build output directory
+!dist/
