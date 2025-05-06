@@ -1,5 +1,7 @@
 # CPRAY
 
+[![codecov](https://codecov.io/gh/c4lyp5o/cpray/graph/badge.svg?token=QMOMM22SVB)](https://codecov.io/gh/c4lyp5o/cpray)
+
 # Module to retrieve prayer times from the official JAKI Malaysia website
 
 > إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا - سورة النساء 4:103
