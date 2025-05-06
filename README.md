@@ -8,7 +8,7 @@
 
 > Indeed, prayer has been decreed upon the believers a decree of specified times - Surah An-Nisa 4:103
 
-This module retrieves prayer times from the official JAKIM website (e-solat) and returns the data as a JSON object. It also provides a human-readable format for the prayer times. Starting from version 1.2.0, a fallback URL (https://api.waktusolat.me) has been added to ensure reliability even if the main URL is down.
+This module retrieves prayer times from the official JAKIM website (e-solat) and returns the data as a JSON object. It also provides a human-readable format for the prayer times. Starting from version 1.3.0, a fallback URL (https://waktusolat.me) has been added to ensure reliability even if the main URL is down.
 
 ## **Functions**
 
@@ -145,7 +145,7 @@ npm install cpray
 Require the `Cpray` class and create a new instance:
 
 ```javascript
-const Cpray = require('cpray');
+import Cpray from 'cpray';
 const cpray = new Cpray();
 ```
 
@@ -225,9 +225,9 @@ fetchPrayerTimes();
 
 ## Testing
 
-The `Cpray` class comes with a suite of tests to ensure its methods work as expected. These tests cover various scenarios, including successful requests, failed requests, the use of both the main and fallback URLs and the use of valid and invalid zones.
+The `Cpray` class comes with a suite of tests to ensure its methods work as expected. These tests cover various scenarios, including successful requests, failed requests, the use of both the main and fallback URLs, and the use of valid and invalid zones.
 
-To run the tests, you need to have [Vitest]([https://jestjs.io/](https://vitest.dev/)) installed. If you don't have Vitest installed, you can install it with npm:
+To run the tests, you need to have [Vitest](https://vitest.dev/) installed. If you don't have Vitest installed, you can install it with npm:
 
 ```bash
 npm install --save-dev vitest
