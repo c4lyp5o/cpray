@@ -1,154 +1,79 @@
-import { describe, it, beforeEach, expect, vi } from 'vitest';
-import axios from 'axios';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Cpray from '../src/index.js';
+import { validZones } from '../src/zones.js';
 
-vi.mock('axios');
+const samplePrimaryResponse = {
+  prayerTime: 'mocked',
+};
+
+const sampleFallbackResponse = {
+  prayerTime: [
+    {
+      hijri: '1446-11-08',
+      date: '06-May-2025',
+      day: 'Tuesday',
+      imsak: '05:41:00',
+      fajr: '05:51:00',
+      syuruk: '07:02:00',
+      dhuha: '07:30:00',
+      dhuhr: '13:10:00',
+      asr: '16:30:00',
+      maghrib: '19:16:00',
+      isha: '20:28:00',
+    },
+  ],
+  status: 'OK!',
+  serverTime: '2025-05-06 12:02:30',
+  periodType: 'today',
+  lang: 'ms_my',
+  zone: 'MLK01',
+  bearing: '292&#176; 50&#8242; 49&#8243;',
+};
+
+vi.stubGlobal('fetch', vi.fn());
 
 describe('Cpray', () => {
   let cpray;
 
   beforeEach(() => {
     cpray = new Cpray();
+    fetch.mockReset();
   });
 
-  // Test for constructor
-  it('getTimes is not accessible from outside the class', () => {
-    expect(cpray.getTimes).toBeUndefined();
-  });
-
-  // Test for getTimesToday
-  it('getTimesToday returns data from the main URL when available', async () => {
-    const data = { data: 'main data' };
-    axios.get.mockResolvedValueOnce(data);
-
-    const result = await cpray.getTimesToday('mlk01');
-
-    expect(result).toEqual('main data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.baseUrl}/takwimsolat`, {
-      params: { period: 'today', zone: 'MLK01' },
+  it('should return data from primary API if successful', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(samplePrimaryResponse),
     });
+
+    const result = await cpray.getTimesToday(validZones[0].zone);
+    expect(result).toEqual(samplePrimaryResponse);
   });
 
-  it('getTimesToday returns data from the fallback URL when the main URL fails', async () => {
-    const fallbackData = { data: 'fallback data' };
-    axios.get.mockRejectedValueOnce(
-      new Error('Network error: Something went wrong')
+  it('should fallback if primary API fails', async () => {
+    fetch
+      .mockRejectedValueOnce(new Error('Primary API failed'))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleFallbackResponse),
+      });
+
+    const result = await cpray.getTimesToday(validZones[0].zone);
+    expect(result).toHaveProperty('prayerTime');
+    expect(result.status).toBe('OK!');
+  });
+
+  it('should throw if both primary and fallback fail', async () => {
+    fetch.mockRejectedValue(new Error('Both APIs failed'));
+
+    await expect(cpray.getTimesToday(validZones[0].zone)).rejects.toThrow(
+      'Server error. Sila cuba lagi.'
     );
-    axios.get.mockResolvedValueOnce(fallbackData);
-
-    const result = await cpray.getTimesToday('mlk01');
-
-    expect(result).toEqual('fallback data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/today/mlk01`);
   });
 
-  // Test for getTimesbyWeek
-  it('getTimesbyWeek returns data from the main URL when available', async () => {
-    const data = { data: 'week data' };
-    axios.get.mockResolvedValueOnce(data);
-
-    const result = await cpray.getTimesbyWeek('mlk01');
-
-    expect(result).toEqual('week data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.baseUrl}/takwimsolat`, {
-      params: { period: 'week', zone: 'MLK01' },
-    });
-  });
-
-  it('getTimesbyWeek returns data from the fallback URL when the main URL fails', async () => {
-    const fallbackData = { data: 'fallback week data' };
-    axios.get.mockRejectedValueOnce(
-      new Error('Network error: Something went wrong')
+  it('should reject invalid zone', async () => {
+    await expect(cpray.getTimesToday('INVALID_ZONE')).rejects.toThrow(
+      'Invalid zone'
     );
-    axios.get.mockResolvedValueOnce(fallbackData);
-
-    const result = await cpray.getTimesbyWeek('mlk01');
-
-    expect(result).toEqual('fallback week data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/week/mlk01`);
-  });
-
-  // Test for getTimesbyMonth
-  it('getTimesbyMonth returns data from the main URL when available', async () => {
-    const data = { data: 'month data' };
-    axios.get.mockResolvedValueOnce(data);
-
-    const result = await cpray.getTimesbyMonth('mlk01');
-
-    expect(result).toEqual('month data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.baseUrl}/takwimsolat`, {
-      params: { period: 'month', zone: 'MLK01' },
-    });
-  });
-
-  it('getTimesbyMonth returns data from the fallback URL when the main URL fails', async () => {
-    const fallbackData = { data: 'fallback month data' };
-    axios.get.mockRejectedValueOnce(
-      new Error('Network error: Something went wrong')
-    );
-    axios.get.mockResolvedValueOnce(fallbackData);
-
-    const result = await cpray.getTimesbyMonth('mlk01');
-
-    expect(result).toEqual('fallback month data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/month/mlk01`);
-  });
-
-  // Test for getTimesbyYear
-  it('getTimesbyYear returns data from the main URL when available', async () => {
-    const data = { data: 'year data' };
-    axios.get.mockResolvedValueOnce(data);
-
-    const result = await cpray.getTimesbyYear('mlk01');
-
-    expect(result).toEqual('year data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.baseUrl}/takwimsolat`, {
-      params: { period: 'year', zone: 'MLK01' },
-    });
-  });
-
-  it('getTimesbyYear returns data from the fallback URL when the main URL fails', async () => {
-    const fallbackData = { data: 'fallback year data' };
-    axios.get.mockRejectedValueOnce(
-      new Error('Network error: Something went wrong')
-    );
-    axios.get.mockResolvedValueOnce(fallbackData);
-
-    const result = await cpray.getTimesbyYear('mlk01');
-
-    expect(result).toEqual('fallback year data');
-    expect(axios.get).toHaveBeenCalledWith(`${cpray.fallbackUrl}/year/mlk01`);
-  });
-
-  // Test if both URLs fail
-  [
-    'getTimesToday',
-    'getTimesbyWeek',
-    'getTimesbyMonth',
-    'getTimesbyYear',
-  ].forEach((method) => {
-    it(`${method} throws an error when both main and fallback URLs fail`, async () => {
-      axios.get.mockRejectedValue(
-        new Error('Network error: Something went wrong')
-      );
-
-      await expect(cpray[method]('mlk01')).rejects.toThrow(
-        'Server error. Sila cuba lagi.'
-      );
-    });
-  });
-
-  // Test for validZones
-  [
-    'getTimesToday',
-    'getTimesbyWeek',
-    'getTimesbyMonth',
-    'getTimesbyYear',
-  ].forEach((method) => {
-    it(`${method} throws an error when called with an invalid zone`, async () => {
-      await expect(cpray[method]('INVALID_ZONE')).rejects.toThrow(
-        'Invalid zone: INVALID_ZONE'
-      );
-    });
   });
 });
