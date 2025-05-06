@@ -227,13 +227,13 @@ fetchPrayerTimes();
 
 The `Cpray` class comes with a suite of tests to ensure its methods work as expected. These tests cover various scenarios, including successful requests, failed requests, the use of both the main and fallback URLs and the use of valid and invalid zones.
 
-To run the tests, you need to have [Jest](https://jestjs.io/) installed. If you don't have Jest installed, you can install it with npm:
+To run the tests, you need to have [Vitest]([https://jestjs.io/](https://vitest.dev/)) installed. If you don't have Vitest installed, you can install it with npm:
 
 ```bash
-npm install --save-dev jest
+npm install --save-dev vitest
 ```
 
-Once Jest is installed, you can run the tests with the following command:
+Once Vitest is installed, you can run the tests with the following command:
 
 ```bash
 npm test
