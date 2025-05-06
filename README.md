@@ -1,5 +1,6 @@
 # CPRAY
 
+[![CI & Publish](https://github.com/c4lyp5o/cpray/actions/workflows/ci-coverage-publish.yml/badge.svg)](https://github.com/c4lyp5o/cpray/actions/workflows/ci-coverage-publish.yml)
 [![codecov](https://codecov.io/gh/c4lyp5o/cpray/graph/badge.svg?token=QMOMM22SVB)](https://codecov.io/gh/c4lyp5o/cpray)
 
 # Module to retrieve prayer times from the official JAKI Malaysia website
