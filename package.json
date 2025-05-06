@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/c4lyp5o/cpray.git"
+    "url": "git+https://github.com/c4lyp5o/cpray.git"
   },
   "bugs": {
     "url": "https://github.com/c4lyp5o/cpray/issues"
