@@ -1,6 +1,8 @@
 import { validZones } from './zones.js';
+import { normalizeSecondaryResponse } from './utils/normalizeResponse.js';
 
-const getTimes = Symbol('getTimes');
+const REQUEST_TIMEOUT_MS = 10_000;
+const DEFAULT_RETRIES = 2;
 
 /**
  * Class to retrieve and normalize prayer times from E-Solat or its fallback.
@@ -12,27 +14,26 @@ class Cpray {
   }
 
   /**
-   * Fetches a URL with retry logic.
+   * Fetches a URL as JSON with timeout and retry logic.
    * @param {string} url
    * @param {number} retries
    * @returns {Promise<any>}
    */
-  async fetchWithRetry(url, retries = 2) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
+  async fetchWithRetry(url, retries = DEFAULT_RETRIES) {
+    for (let attempt = 0; ; attempt++) {
       try {
         const response = await fetch(url, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
         if (!response.ok) {
-          const errData = await response.json();
           throw new Error(
-            `HTTP ${response.status}: ${errData.message || 'Unknown error'}`
+            `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`
           );
         }
         return await response.json();
       } catch (error) {
-        if (attempt === retries) throw error;
+        if (attempt >= retries) throw error;
       }
     }
   }
@@ -43,24 +44,28 @@ class Cpray {
    * @param {string} zone
    * @returns {Promise<Object>}
    */
-  async [getTimes](period, zone) {
-    const zoneUpper = zone.toUpperCase();
-    const isValidZone = validZones.some((z) => z.zone === zoneUpper);
-    if (!isValidZone) throw new Error(`Invalid zone: ${zone}`);
-
-    const url = `${this.baseUrl}/TakwimSolat&period=${period}&zone=${zoneUpper}`;
-    const fallbackUrl = `${this.fallbackUrl}/${period}/${zone.toLowerCase()}`;
+  async #getTimes(period, zone) {
+    const zoneCode = typeof zone === 'string' ? zone.toUpperCase() : '';
+    const zoneInfo = validZones.find((z) => z.zone === zoneCode);
+    if (!zoneInfo) throw new Error(`Invalid zone: ${zone}`);
 
     try {
-      const data = await this.fetchWithRetry(url);
-      return data;
+      const data = await this.fetchWithRetry(
+        `${this.baseUrl}/TakwimSolat&period=${period}&zone=${zoneCode}`
+      );
+      // E-Solat answers HTTP 200 with e.g. status "NO_RECORD!" when it has no data.
+      if (data?.status === 'OK!' && Array.isArray(data.prayerTime)) return data;
+    } catch {
+      // Fall through to the fallback API.
+    }
+
+    try {
+      const data = await this.fetchWithRetry(
+        `${this.fallbackUrl}/${period}/${zoneCode.toLowerCase()}`
+      );
+      return normalizeSecondaryResponse(data, period, zoneInfo);
     } catch (error) {
-      try {
-        const fallbackData = await this.fetchWithRetry(fallbackUrl);
-        return this.normalizeSecondaryResponse(fallbackData);
-      } catch (fallbackError) {
-        throw new Error('Server error. Sila cuba lagi.');
-      }
+      throw new Error('Server error. Sila cuba lagi.', { cause: error });
     }
   }
 
@@ -69,7 +74,7 @@ class Cpray {
    * @param {string} zone
    */
   getTimesToday(zone) {
-    return this[getTimes]('today', zone);
+    return this.#getTimes('today', zone);
   }
 
   /**
@@ -77,7 +82,7 @@ class Cpray {
    * @param {string} zone
    */
   getTimesbyWeek(zone) {
-    return this[getTimes]('week', zone);
+    return this.#getTimes('week', zone);
   }
 
   /**
@@ -85,7 +90,7 @@ class Cpray {
    * @param {string} zone
    */
   getTimesbyMonth(zone) {
-    return this[getTimes]('month', zone);
+    return this.#getTimes('month', zone);
   }
 
   /**
@@ -93,7 +98,7 @@ class Cpray {
    * @param {string} zone
    */
   getTimesbyYear(zone) {
-    return this[getTimes]('year', zone);
+    return this.#getTimes('year', zone);
   }
 }
 
