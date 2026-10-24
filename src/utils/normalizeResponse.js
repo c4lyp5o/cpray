@@ -1,49 +1,53 @@
-import { formatDate } from './formatDate.js';
-import { formatHijri } from './formatHijri.js';
-import { validZones } from '../zones.js';
+import {
+  addMinutes,
+  formatDate,
+  formatHijri,
+  formatServerTime,
+} from './format.js';
+
+// E-Solat sets dhuha 27-28 minutes after syuruk; the fallback omits it.
+const DHUHA_AFTER_SYURUK_MINUTES = 27;
+
+// waktusolat.me fields are bilingual pairs, e.g. "Ahad / Sunday" or
+// "25/10/2026 / 25/Oktober/2026".
+const firstPart = (value) => value.split(' / ')[0];
+const lastPart = (value) => value.split(' / ').at(-1);
 
 /**
- * Normalize fallback API response to match expected format.
- * @param {object} data
+ * Normalize a waktusolat.me response to match the E-Solat format.
+ * @param {object} data - Fallback API response.
+ * @param {'today' | 'week' | 'month' | 'year'} period - Requested period.
+ * @param {{ zone: string, bearing: string }} zoneInfo - Requested zone.
+ * @returns {object}
  */
-export function normalizeSecondaryResponse(data) {
-  const today = new Date();
-  const formattedDate = formatDate(today.toISOString().split('T')[0], '-');
+export function normalizeSecondaryResponse(data, period, zoneInfo) {
+  const today = formatDate(firstPart(data.today.date));
 
-  const smallZone = validZones.find(
-    (validZone) => validZone.label.toUpperCase() === data.zone.toUpperCase()
-  );
+  const prayerTime = data.data.map((entry) => ({
+    hijri: formatHijri(firstPart(entry.hijri)),
+    date: formatDate(firstPart(entry.date)),
+    day: lastPart(entry.day),
+    imsak: entry.imsak,
+    fajr: entry.fajr,
+    syuruk: entry.syuruk,
+    dhuha: addMinutes(entry.syuruk, DHUHA_AFTER_SYURUK_MINUTES),
+    dhuhr: entry.dhuhr,
+    asr: entry.asr,
+    maghrib: entry.maghrib,
+    isha: entry.isha,
+  }));
 
   return {
-    prayerTime: data.data
-      .map((entry) => ({
-        hijri: formatHijri(entry.hijri),
-        date: formatDate(entry.date, '/'),
-        day: entry.day.split(' / ')[1],
-        imsak: entry.imsak,
-        fajr: entry.fajr,
-        syuruk: entry.syuruk,
-        dhuha: '07:30:00', // Consider improving this
-        dhuhr: entry.dhuhr,
-        asr: entry.asr,
-        maghrib: entry.maghrib,
-        isha: entry.isha,
-      }))
-      .filter((entry) => entry.date === formattedDate),
+    // The fallback's "today" period also includes tomorrow.
+    prayerTime:
+      period === 'today'
+        ? prayerTime.filter((entry) => entry.date === today)
+        : prayerTime,
     status: 'OK!',
-    serverTime: `${data.today.date.split(' / ')[0].replace(/\//g, '-')} ${
-      data.today.time.split(' ')[0]
-    }`,
-    periodType:
-      data.data.length === 2
-        ? 'today'
-        : data.data.length === 7
-        ? 'week'
-        : data.data.length >= 30 && data.data.length <= 32
-        ? 'month'
-        : 'year',
+    serverTime: formatServerTime(firstPart(data.today.date), data.today.time),
+    periodType: period,
     lang: 'ms_my',
-    zone: smallZone?.zone || data.zone,
-    bearing: `${smallZone?.bearing ?? 'N/A'}`,
+    zone: zoneInfo.zone,
+    bearing: zoneInfo.bearing,
   };
 }

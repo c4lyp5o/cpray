@@ -6,13 +6,7 @@ await build({
   bundle: true,
   minify: true,
   platform: 'node',
-  target: 'node16',
+  target: 'node18',
   format: 'esm',
-  sourcemap: false,
-  define: {
-    'process.env.NODE_ENV': '"production"',
-    __DEV__: 'false',
-  },
-  mangleProps: /^_/,
   logLevel: 'info',
 }).catch(() => process.exit(1));

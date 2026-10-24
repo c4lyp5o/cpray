@@ -2,14 +2,21 @@
 
 [![CI & Publish](https://github.com/c4lyp5o/cpray/actions/workflows/ci-coverage-publish.yml/badge.svg)](https://github.com/c4lyp5o/cpray/actions/workflows/ci-coverage-publish.yml)
 [![codecov](https://codecov.io/gh/c4lyp5o/cpray/graph/badge.svg?token=QMOMM22SVB)](https://codecov.io/gh/c4lyp5o/cpray)
+[![npm version](https://img.shields.io/npm/v/cpray)](https://www.npmjs.com/package/cpray)
+[![npm downloads](https://img.shields.io/npm/dm/cpray)](https://www.npmjs.com/package/cpray)
+[![package size](https://img.shields.io/npm/unpacked-size/cpray)](https://www.npmjs.com/package/cpray?activeTab=code)
+[![node](https://img.shields.io/node/v/cpray)](https://www.npmjs.com/package/cpray)
+[![license](https://img.shields.io/github/license/c4lyp5o/cpray)](LICENSE)
 
-# Module to retrieve prayer times from the official JAKI Malaysia website
+# Module to retrieve prayer times from the official JAKIM Malaysia website
 
 > إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا - سورة النساء 4:103
 
 > Indeed, prayer has been decreed upon the believers a decree of specified times - Surah An-Nisa 4:103
 
-This module retrieves prayer times from the official JAKIM website (e-solat) and returns the data as a JSON object. It also provides a human-readable format for the prayer times. Starting from version 1.3.0, a fallback URL (https://waktusolat.me) has been added to ensure reliability even if the main URL is down.
+This module retrieves prayer times from the official JAKIM website (e-solat) and returns the data as a JSON object. If e-solat is down or returns no data, it automatically falls back to [waktusolat.me](https://waktusolat.me) and normalizes that response into the same format.
+
+Requires **Node.js 18 or newer**. No runtime dependencies.
 
 ## **Functions**
 
@@ -180,13 +187,45 @@ cpray
 
 Please note, the zone is not case sensitive. You can use either 'KDH01' or 'kdh01' or 'Kdh01' or even 'kDh01' or 'kdH01' (if you must).
 
+## Response format
+
+Every method resolves to the same shape, whether the data came from e-solat or the fallback:
+
+```json
+{
+  "prayerTime": [
+    {
+      "hijri": "1448-05-14",
+      "date": "25-Okt-2026",
+      "day": "Sunday",
+      "imsak": "05:45:00",
+      "fajr": "05:55:00",
+      "syuruk": "07:03:00",
+      "dhuha": "07:30:00",
+      "dhuhr": "13:05:00",
+      "asr": "16:24:00",
+      "maghrib": "19:02:00",
+      "isha": "20:12:00"
+    }
+  ],
+  "status": "OK!",
+  "serverTime": "2026-10-25 01:34:28",
+  "periodType": "today",
+  "lang": "ms_my",
+  "zone": "KDH01",
+  "bearing": "291&#176; 5&#8242; 39&#8243;"
+}
+```
+
+Dates use Malay month abbreviations (`Jan Feb Mac Apr Mei Jun Jul Ogos Sep Okt Nov Dis`), as e-solat does. `bearing` is the qibla direction, HTML-encoded. The fallback does not provide dhuha, so on fallback responses it is calculated as syuruk + 27 minutes (e-solat uses 27–28 minutes depending on the zone).
+
 ## Errors
 
 The module will throw an error in the following scenarios:
 
 - **The zone is not specified or invalid**: Each method of the `Cpray` class requires a `zone` parameter, which should be a string representing a valid zone. The valid zones are hardcoded in the module. If the `zone` parameter is not provided, or if it's not included in the list of valid zones, the method will throw an error with the message 'Invalid zone: {zone}'.
 
-- **Both the main and fallback URLs are down**: The `Cpray` class uses two URLs to fetch prayer times: a main URL and a fallback URL. If the main URL fails (for example, if the server is down or the request times out), the class will automatically try the fallback URL. If both URLs fail, the method will throw an error with the message 'Both main and fallback URLs failed'. This ensures that the class can still return prayer times even if one of the URLs is down, but it also means that it's dependent on at least one of the URLs being up.
+- **Both the main and fallback URLs are down**: The `Cpray` class uses two URLs to fetch prayer times: a main URL and a fallback URL. Each request times out after 10 seconds and is retried up to 2 times. If the main URL fails (server down, timeout, HTTP error, or a non-`OK!` status such as `NO_RECORD!`), the class automatically tries the fallback URL. If both fail, the method throws an error with the message 'Server error. Sila cuba lagi.'. The underlying failure is available as `error.cause`.
 
 ## Promises and Async/Await
 
@@ -226,18 +265,12 @@ fetchPrayerTimes();
 
 ## Testing
 
-The `Cpray` class comes with a suite of tests to ensure its methods work as expected. These tests cover various scenarios, including successful requests, failed requests, the use of both the main and fallback URLs, and the use of valid and invalid zones.
+The tests use [Vitest](https://vitest.dev/) with a mocked `fetch`, so they make no network calls. They cover the primary API, every fallback trigger (network error, HTTP error, non-`OK!` status), fallback normalization for each period, total failure, invalid zones, and the date/time helpers.
 
-To run the tests, you need to have [Vitest](https://vitest.dev/) installed. If you don't have Vitest installed, you can install it with npm:
-
-```bash
-npm install --save-dev vitest
-```
-
-Once Vitest is installed, you can run the tests with the following command:
+Developing requires Node.js 22.12 or newer (for Vitest 5). Then run:
 
 ```bash
-npm test
+npm install
+npm test        # tests + coverage report
+npm run build   # bundles to dist/
 ```
-
-The tests ensure that the `Cpray` class handles Promises and errors correctly using async/await syntax, as well as `.then` and `.catch`. They also use `try-catch` blocks for error handling. Special attention is given to scenarios where an invalid zone is provided. The `Cpray` class methods require a `zone` parameter, representing a valid zone. These zones are hardcoded in the module. If an invalid `zone` is provided, the method will throw an error with the message 'Invalid zone: {zone}'.
